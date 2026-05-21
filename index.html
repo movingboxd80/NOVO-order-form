@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVO Portable X-ray — Order Form</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1a5fb4; --blue-dark: #0d3b7a; --blue-light: #e8f0fb; --blue-mid: #4a90d9;
+    --text: #1c1c1e; --text-sec: #6b6b6e; --border: #d4d4d8; --bg: #f5f5f7; --white: #ffffff;
+    --green: #0f6e56; --red-btn: #7a2020; --radius: 10px; --radius-sm: 6px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 1.5rem 1rem 3rem; }
+  .page { max-width: 560px; margin: 0 auto; }
+  .hdr { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--blue); }
+  .hdr-logo { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--blue); text-transform: uppercase; margin-bottom: 4px; }
+  .hdr h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .hdr p { font-size: 12px; color: var(--text-sec); margin-top: 3px; }
+  .agency-row { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1rem; }
+  .agency-row label { font-size: 12px; font-weight: 600; color: var(--blue); white-space: nowrap; min-width: 56px; }
+  .agency-row input { flex: 1; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); background: transparent; }
+  .agency-row input::placeholder { color: var(--text-sec); }
+  .sec { margin-bottom: 1rem; }
+  .sec-title { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); background: var(--blue); padding: 7px 12px; border-radius: var(--radius-sm); margin-bottom: 8px; }
+  .sec-title svg { flex-shrink: 0; opacity: 0.85; }
+  .sub-label { font-size: 10px; font-weight: 500; color: var(--text-sec); letter-spacing: 0.5px; text-transform: uppercase; padding: 0 2px 4px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 6px; }
+  .item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: border-color 0.12s, background 0.12s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .item:hover { border-color: var(--blue-mid); }
+  .item.selected { background: var(--blue-light); border-color: var(--blue); }
+  .item input[type="checkbox"] { display: none; }
+  .check-box { width: 17px; height: 17px; border: 1.5px solid var(--border); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.12s; background: var(--white); }
+  .item.selected .check-box { background: var(--blue); border-color: var(--blue); }
+  .check-box svg { display: none; }
+  .item.selected .check-box svg { display: block; }
+  .item span { font-size: 13px; font-weight: 400; color: var(--text); line-height: 1.3; }
+  .item.selected span { color: var(--blue-dark); font-weight: 500; }
+  .wire-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .wire-row .item { flex: 0 0 auto; }
+  .wire-input { flex: 1; min-width: 120px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.12s; }
+  .wire-input:focus { border-color: var(--blue); }
+  .wire-input::placeholder { color: var(--text-sec); }
+  textarea { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--white); min-height: 72px; resize: vertical; outline: none; transition: border-color 0.12s; }
+  textarea:focus { border-color: var(--blue); }
+  textarea::placeholder { color: var(--text-sec); }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 10px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: opacity 0.12s, transform 0.1s; -webkit-tap-highlight-color: transparent; }
+  .btn:active { transform: scale(0.97); opacity: 0.85; }
+  .btn-reset { background: var(--white); border-color: var(--border); color: var(--text-sec); }
+  .btn-pdf   { background: var(--blue); color: #fff; }
+  .btn-share { grid-column: 1 / -1; background: var(--green); color: #fff; }
+  .status { text-align: center; font-size: 11px; color: var(--text-sec); margin-top: 8px; min-height: 16px; }
+  .footer { text-align: center; margin-top: 2rem; font-size: 10px; color: var(--text-sec); letter-spacing: 0.5px; }
+  .footer a { color: var(--blue); text-decoration: none; }
+  @media (max-width: 400px) { .hdr h1 { font-size: 18px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <div class="hdr-logo">NOVO DR</div>
+    <h1>Portable X-ray Order Form</h1>
+    <p>กรอกแบบฟอร์มแล้ว Export PDF หรือแชร์ผ่านแอปแชท</p>
+  </div>
+
+  <div class="agency-row">
+    <label>Agency</label>
+    <input type="text" id="agencyInput" placeholder="ชื่อหน่วยงาน / Agency name">
+  </div>
+
+  <!-- Working Field -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      Working Field
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="wf" value="Security"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Security</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="wf" value="NDT"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>NDT</span></div>
+    </div>
+  </div>
+
+  <!-- Detector -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
+      Detector
+    </div>
+    <div class="sub-label">Security</div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="det" value="12SF"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>12SF</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="det" value="15WS"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>15WS</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="det" value="22WS"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>22WS</span></div>
+    </div>
+    <div class="sub-label">NDT</div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="det" value="12HRN"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>12HRN</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="det" value="12WN"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>12WN</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="det" value="22WN"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>22WN</span></div>
+    </div>
+  </div>
+
+  <!-- X-ray Source -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4M18 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      X-ray Source
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="xray" value="XR-150"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>XR-150</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="xray" value="XR-200"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>XR-200</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="xray" value="XRS-3"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>XRS-3</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="xray" value="XRS-4"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>XRS-4</span></div>
+    </div>
+    <div class="wire-row">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="xray" value="Other"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Other</span></div>
+      <input class="wire-input" id="xrayOther" placeholder="ระบุรุ่น...">
+    </div>
+  </div>
+
+  <!-- Controller -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      Controller
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value="Android Phone"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Android Phone</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value='FZ-G2 10"'><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>FZ-G2 10"</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value='CF-33 12"'><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>CF-33 12"</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value='NOVO Bright S 10"'><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>NOVO Bright S 10"</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value='NOVO Bright L 17"'><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>NOVO Bright L 17"</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value='NOVO Bright XL 21.5"'><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>NOVO Bright XL 21.5"</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value="Laptop"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Laptop</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ctrl" value="PC"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>PC</span></div>
+    </div>
+  </div>
+
+  <!-- Wireless Set -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+      Wireless Set
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ws" value="Spark III"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Spark III</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ws" value="Spark Mesh"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Spark Mesh</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ws" value="Falcon III Mesh"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Falcon III Mesh</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ws" value="Ranger Mesh"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Ranger Mesh</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="ws" value="Wireless Ranger"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Wireless Ranger</span></div>
+    </div>
+  </div>
+
+  <!-- Wire -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 6h8M8 12h8M8 18h4"/><rect x="2" y="3" width="4" height="4" rx="1"/><rect x="18" y="3" width="4" height="4" rx="1"/><rect x="18" y="17" width="4" height="4" rx="1"/></svg>
+      Wire
+    </div>
+    <div class="wire-row">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="wire" value="50 m."><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>50 m.</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="wire" value="Other"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Other</span></div>
+      <input class="wire-input" id="wireOther" placeholder="ระบุความยาว...">
+    </div>
+  </div>
+
+  <!-- Accessories Detector -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Accessories — Detector
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_det" value="Armor Kit"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Armor Kit</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_det" value="Soft Protective Cover"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Soft Protective Cover</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_det" value="Detector Stand"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Detector Stand</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_det" value="Diagonal Tripod Mount"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Diagonal Tripod Mount</span></div>
+    </div>
+  </div>
+
+  <!-- Accessories X-ray Source -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Accessories — X-ray Source
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_xray" value="Lookout"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Lookout</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_xray" value="Folding Slider L"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Folding Slider L</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_xray" value="Folding Slider XXL"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Folding Slider XXL</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_xray" value="3D Arc"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>3D Arc</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_xray" value="3D Arc Lite"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>3D Arc Lite</span></div>
+    </div>
+  </div>
+
+  <!-- Accessories Robot -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 11V9M16 11V9"/></svg>
+      Accessories — Robot &amp; Wireless Extender
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_rob" value="C-Arm Holder"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>C-Arm Holder</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_rob" value="Detector Frame"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Detector Frame</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_rob" value="Eagle"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Eagle (Extender)</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="acc_rob" value="Super Ranger"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Super Ranger</span></div>
+    </div>
+  </div>
+
+  <!-- Case -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Case
+    </div>
+    <div class="grid">
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="case" value="Rover III"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Rover III</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="case" value="Ultimate Backpack"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Ultimate Backpack</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="case" value="Tactical Backpack"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Tactical Backpack</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="case" value="Urban III Backpack"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Urban III Backpack</span></div>
+      <div class="item" onclick="tog(this)"><input type="checkbox" name="case" value="Shadow Backpack"><div class="check-box"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="2,6 5,9 10,3"/></svg></div><span>Shadow Backpack</span></div>
+    </div>
+  </div>
+
+  <!-- Remark -->
+  <div class="sec">
+    <div class="sec-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Remark
+    </div>
+    <textarea id="remarkText" placeholder="หมายเหตุ / Additional notes..."></textarea>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btns">
+    <button class="btn btn-reset" onclick="resetForm()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+      ล้างข้อมูล
+    </button>
+    <button class="btn btn-pdf" onclick="exportPDF()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+    <button class="btn btn-share" onclick="shareText()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      คัดลอกสรุปเพื่อแชร์ (Line / WhatsApp)
+    </button>
+  </div>
+  <div class="status" id="statusBar"></div>
+
+  <div class="footer">
+    NOVO DR &mdash; <a href="https://www.novo-dr.com" target="_blank">www.novo-dr.com</a>
+  </div>
+</div>
+
+<script>
+function tog(el) {
+  var cb = el.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  el.classList.toggle('selected', cb.checked);
+}
+function getChecked(name) {
+  return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(e){ return e.value; });
+}
+function resetForm() {
+  document.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+    cb.checked = false;
+    cb.closest('.item').classList.remove('selected');
+  });
+  ['agencyInput','remarkText','xrayOther','wireOther'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  setStatus('ล้างข้อมูลเรียบร้อย');
+}
+function setStatus(msg) {
+  var sb = document.getElementById('statusBar');
+  sb.textContent = msg;
+  setTimeout(function(){ sb.textContent = ''; }, 3000);
+}
+function buildSummary() {
+  var a = document.getElementById('agencyInput').value || '(ไม่ระบุ)';
+  var L = ['NOVO Portable X-ray Order Form', '================================', 'Agency: ' + a, ''];
+  var wf = getChecked('wf'); if (wf.length) L.push('Working Field: ' + wf.join(', '));
+  var det = getChecked('det'); if (det.length) L.push('Detector: ' + det.join(', '));
+  var xr = getChecked('xray'); var xo = document.getElementById('xrayOther').value;
+  if (xr.length) L.push('X-ray Source: ' + xr.join(', ') + (xo ? ' (' + xo + ')' : ''));
+  var ct = getChecked('ctrl'); if (ct.length) L.push('Controller: ' + ct.join(', '));
+  var ws = getChecked('ws'); if (ws.length) L.push('Wireless Set: ' + ws.join(', '));
+  var wi = getChecked('wire'); var wo = document.getElementById('wireOther').value;
+  if (wi.length) L.push('Wire: ' + wi.join(', ') + (wo ? ' ' + wo : ''));
+  var ad = getChecked('acc_det'); if (ad.length) L.push('Accessories (Detector): ' + ad.join(', '));
+  var ax = getChecked('acc_xray'); if (ax.length) L.push('Accessories (X-ray Source): ' + ax.join(', '));
+  var ar = getChecked('acc_rob'); if (ar.length) L.push('Accessories (Robot/Wireless): ' + ar.join(', '));
+  var cs = getChecked('case'); if (cs.length) L.push('Case: ' + cs.join(', '));
+  var rem = document.getElementById('remarkText').value;
+  if (rem) { L.push(''); L.push('Remark: ' + rem); }
+  L.push('');
+  L.push('Date: ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }));
+  return L.join('\n');
+}
+function exportPDF() {
+  if (!window.jspdf) { setStatus('กำลังโหลด jsPDF...'); return; }
+  try {
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var a = document.getElementById('agencyInput').value || '(ไม่ระบุ)';
+    var M = 20, y = M, lh = 7;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('NOVO Portable X-ray Order Form', 105, y, { align: 'center' });
+    y += 4;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('www.novo-dr.com', 105, y + 3, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    y += 10;
+    doc.setDrawColor(26, 95, 180);
+    doc.setLineWidth(0.6);
+    doc.line(M, y, 190, y);
+    y += 7;
+    function row(lbl, val) {
+      if (!val) return;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(26, 95, 180);
+      doc.text(lbl, M, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      var lines = doc.splitTextToSize(val, 125);
+      doc.text(lines, 68, y);
+      y += Math.max(lh, lines.length * 5 + 2);
+      if (y > 272) { doc.addPage(); y = 20; }
+    }
+    row('Agency:', a);
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(M, y, 190, y);
+    y += 5;
+    row('Working Field:', getChecked('wf').join(', '));
+    row('Detector:', getChecked('det').join(', '));
+    var xr = getChecked('xray'); var xo = document.getElementById('xrayOther').value;
+    row('X-ray Source:', xr.join(', ') + (xo ? ' + ' + xo : ''));
+    row('Controller:', getChecked('ctrl').join(', '));
+    row('Wireless Set:', getChecked('ws').join(', '));
+    var wi = getChecked('wire'); var wo = document.getElementById('wireOther').value;
+    row('Wire:', wi.join(', ') + (wo ? ' ' + wo : ''));
+    row('Accessories (Detector):', getChecked('acc_det').join(', '));
+    row('Accessories (X-ray Source):', getChecked('acc_xray').join(', '));
+    row('Accessories (Robot/Wireless):', getChecked('acc_rob').join(', '));
+    row('Case:', getChecked('case').join(', '));
+    var rem = document.getElementById('remarkText').value;
+    if (rem) {
+      y += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(M, y, 190, y);
+      y += 5;
+      row('Remark:', rem);
+    }
+    y += 4;
+    doc.setFontSize(9);
+    doc.setTextColor(130, 130, 130);
+    doc.text('Generated: ' + new Date().toLocaleString('th-TH'), M, y);
+    doc.setTextColor(0, 0, 0);
+    var fn = 'NOVO_Order_' + (a !== '(ไม่ระบุ)' ? a.replace(/\s+/g, '_') + '_' : '') + new Date().toISOString().slice(0, 10) + '.pdf';
+    doc.save(fn);
+    setStatus('บันทึก PDF เรียบร้อย: ' + fn);
+  } catch(e) {
+    setStatus('เกิดข้อผิดพลาด: ' + e.message);
+  }
+}
+function shareText() {
+  var text = buildSummary();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function(){ setStatus('คัดลอกแล้ว — วางใน Line / WhatsApp ได้เลย'); })
+      .catch(function(){ fbCopy(text); });
+  } else {
+    fbCopy(text);
+  }
+}
+function fbCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); setStatus('คัดลอกเรียบร้อย!'); }
+  catch(e) { setStatus('ไม่สามารถคัดลอกได้ กรุณาลองใหม่'); }
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
